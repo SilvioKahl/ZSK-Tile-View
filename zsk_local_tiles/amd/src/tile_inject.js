@@ -1,0 +1,282 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+/**
+ * Inject course/category tile grids into listing pages.
+ *
+ * @module     local_zsk_local_tiles/tile_inject
+ * @copyright  2025 Silvio Kuhn
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+define([], function() {
+
+    /**
+     * @param {string} url
+     * @return {string}
+     */
+    const fixPluginfileImageUrl = (url) => {
+        if (!url) {
+            return '';
+        }
+        return url
+            .replace(/\/overviewfiles\/0\//g, '/overviewfiles/')
+            .replace(/\/coursecat\/description\/0\//g, '/coursecat/description/')
+            .replace(/\/tileplaceholder\/0\//g, '/tileplaceholder/');
+    };
+
+    /**
+     * @param {HTMLElement} main
+     * @param {string} mode
+     */
+    const hideCourseOverviewRemnants = (main) => {
+        const titles = ['Kursübersicht', 'Kursliste', 'Suchergebnisse', 'Course overview', 'Course list', 'Search results'];
+        const children = Array.prototype.slice.call(main.children);
+        let hiding = false;
+
+        children.forEach((child) => {
+            if (child.id === 'local-zsk-tiles-category-tiles' || child.id === 'local-termine-upcoming'
+                || child.classList.contains('local-termine-frontpage-pending')
+                || child.classList.contains('local-termine-dashboard-pending')) {
+                return;
+            }
+
+            if (!hiding) {
+                let match = false;
+                if (child.matches && child.matches('h1, h2, h3, h4')) {
+                    match = titles.indexOf((child.textContent || '').replace(/\s+/g, ' ').trim()) !== -1;
+                }
+                if (!match && child.querySelectorAll) {
+                    child.querySelectorAll('h1, h2, h3, h4').forEach((heading) => {
+                        if (titles.indexOf((heading.textContent || '').replace(/\s+/g, ' ').trim()) !== -1) {
+                            match = true;
+                        }
+                    });
+                }
+                if (match) {
+                    hiding = true;
+                }
+            }
+
+            if (hiding) {
+                child.style.display = 'none';
+            }
+        });
+
+        [
+            '[data-region="courses-view"]',
+            '[data-region="course-view"]',
+            '#courses-view',
+            '.courses-view',
+            '[data-region="myoverview"]'
+        ].forEach((selector) => {
+            main.querySelectorAll(selector).forEach((el) => {
+                if (!el.closest('#local-zsk-tiles-category-tiles')) {
+                    el.style.display = 'none';
+                }
+            });
+        });
+    };
+
+    /**
+     * @param {HTMLElement} main
+     * @param {string} mode
+     */
+    const hideStandardLists = (main, mode) => {
+        const categorySelectors = [
+            '.course_category_tree',
+            '.subcategories',
+            '.courses',
+            '.course-list',
+            '.courses-view',
+            '[data-region="courses-view"]',
+            '.coursebox',
+            '.course-info-container',
+            '.subcategories-collapsed',
+            '#coursesearch',
+            'form[action*="course/search.php"]',
+            '[data-region="category-description"]',
+            '#categorydescription',
+            '.categorydescription',
+            '.categoryinfo',
+            '.generalbox.info'
+        ];
+        const courseSelectors = [
+            '#courses-view',
+            '[data-region="courses-view"]',
+            '.courses-view',
+            '.course-list',
+            '.course-cards',
+            '.course-summary-card',
+            '.frontpage-course-list-all',
+            '.frontpage-available-courses',
+            '[data-region="summary-view"]',
+            '.summary-view',
+            '.coursebox'
+        ];
+        let selectors = mode === 'category' ? categorySelectors : courseSelectors.concat(categorySelectors);
+        if (mode === 'search') {
+            selectors = selectors.concat([
+                '.course-search-result',
+                '.course-search-result-search',
+                '.course-search-result-blocklist',
+                '.course-search-result-modulelist',
+                '.course-search-result-tagid'
+            ]);
+        }
+        selectors.forEach((selector) => {
+            main.querySelectorAll(selector).forEach((el) => {
+                el.style.display = 'none';
+            });
+        });
+
+        if (mode === 'courses' || mode === 'search') {
+            hideCourseOverviewRemnants(main);
+        }
+
+        main.querySelectorAll('img[src*="pluginfile.php"]').forEach((img) => {
+            if (img.closest('#local-zsk-tiles-category-tiles')) {
+                return;
+            }
+            const src = img.getAttribute('src') || '';
+            if (src.indexOf('/coursecat/') !== -1 || src.indexOf('coursecat/description') !== -1) {
+                img.style.display = 'none';
+                const parent = img.closest('.generalbox, .box, .content, div');
+                if (parent && !parent.closest('#local-zsk-tiles-category-tiles')) {
+                    let visible = 0;
+                    parent.querySelectorAll('img').forEach((i) => {
+                        if (i.style.display !== 'none') {
+                            visible++;
+                        }
+                    });
+                    if (visible === 0) {
+                        parent.style.display = 'none';
+                    }
+                }
+            }
+        });
+    };
+
+    /**
+     * Ensure stylesheet is present when injection runs after head.
+     *
+     * @param {string} cssurl
+     */
+    const ensureStylesheet = (cssurl) => {
+        if (!cssurl) {
+            return;
+        }
+        if (document.querySelector('link[data-local-zsk-tiles-tiles="1"]')
+            || document.querySelector('link[href*="/local/zsk_local_tiles/styles.css"]')) {
+            return;
+        }
+        const csslink = document.createElement('link');
+        csslink.rel = 'stylesheet';
+        csslink.href = cssurl;
+        csslink.setAttribute('data-local-zsk-tiles-tiles', '1');
+        document.head.appendChild(csslink);
+    };
+
+    /**
+     * @param {Object[]} items
+     * @param {string} mode
+     * @param {string} cssurl
+     */
+    const renderTiles = (items, mode, cssurl) => {
+        if (!Array.isArray(items) || !items.length) {
+            return;
+        }
+        if (document.getElementById('local-zsk-tiles-category-tiles')) {
+            return;
+        }
+
+        const main = document.querySelector('#region-main') || document.querySelector('[role="main"]') || document.body;
+        if (!main) {
+            return;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.id = 'local-zsk-tiles-category-tiles';
+        wrapper.className = 'local-zsk-tiles-category-tiles';
+
+        const grid = document.createElement('div');
+        grid.className = 'local-zsk-tiles-category-grid';
+
+        items.forEach((item) => {
+            const link = document.createElement('a');
+            link.className = 'local-zsk-tiles-category-card';
+            if (!item.image) {
+                link.classList.add('local-zsk-tiles-no-image');
+            }
+            link.href = item.url || '#';
+
+            if (item.image) {
+                const img = document.createElement('img');
+                img.className = 'local-zsk-tiles-category-image';
+                img.src = fixPluginfileImageUrl(item.image);
+                img.alt = item.title || '';
+                img.loading = 'lazy';
+                link.appendChild(img);
+            }
+
+            const body = document.createElement('div');
+            body.className = 'local-zsk-tiles-category-card-body';
+
+            const heading = document.createElement('h4');
+            heading.className = 'local-zsk-tiles-category-card-title';
+            heading.textContent = item.title || '';
+            body.appendChild(heading);
+
+            if (item.text) {
+                const paragraph = document.createElement('p');
+                paragraph.className = 'local-zsk-tiles-category-card-text';
+                paragraph.textContent = item.text;
+                body.appendChild(paragraph);
+            }
+
+            if (item.completiontext) {
+                const footer = document.createElement('p');
+                const state = item.completionstate || 'disabled';
+                footer.className = 'local-zsk-tiles-category-card-footer local-zsk-tiles-completion-' + state;
+                footer.textContent = item.completiontext;
+                body.appendChild(footer);
+            } else if (item.categorycounttext) {
+                const countFooter = document.createElement('p');
+                countFooter.className = 'local-zsk-tiles-category-card-footer local-zsk-tiles-category-count';
+                countFooter.textContent = item.categorycounttext;
+                body.appendChild(countFooter);
+            }
+
+            link.appendChild(body);
+            grid.appendChild(link);
+        });
+
+        wrapper.appendChild(grid);
+        main.insertBefore(wrapper, main.firstChild);
+        document.body.classList.add('local-zsk-tiles-tiles-active');
+        hideStandardLists(main, mode);
+        document.dispatchEvent(new CustomEvent('local-zsk-tiles-tiles-rendered'));
+    };
+
+    /**
+     * @param {Object[]} items
+     * @param {string} mode
+     * @param {string} cssurl
+     */
+    const init = (items, mode, cssurl) => {
+        ensureStylesheet(cssurl);
+        const run = () => renderTiles(items, mode || 'category', cssurl);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run);
+        } else {
+            run();
+        }
+    };
+
+    return {
+        init: init,
+    };
+});

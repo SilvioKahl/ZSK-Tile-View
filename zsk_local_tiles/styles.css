@@ -1,0 +1,200 @@
+/* Course/category tile view (local_zsk_local_tiles) */
+/* Layout reference: Dashboard block „Kurs-Kacheln“ – immer 2 gleich breite Spalten. */
+:root {
+    --local-zsk-tiles-image-height: 175px;
+    --local-zsk-tiles-desc-lines: 7;
+    --local-zsk-tiles-desc-line-height: 1.45;
+    --local-zsk-tiles-grid-gap: 1rem;
+}
+
+.block_coursetiles .local-zsk-tiles-category-tiles,
+.local-zsk-tiles-frontpage-section .local-zsk-tiles-category-tiles {
+    margin-bottom: 0;
+}
+
+.local-zsk-tiles-category-tiles {
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.local-zsk-tiles-category-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--local-zsk-tiles-grid-gap);
+    align-items: stretch;
+}
+
+/* Wie Dashboard: zwei gleich breite Spalten (nicht auto-fill mit 3+ schmalen Kacheln). */
+@media (min-width: 520px) {
+    .local-zsk-tiles-category-tiles > .local-zsk-tiles-category-grid,
+    .block_coursetiles .local-zsk-tiles-category-grid,
+    #local-zsk-tiles-category-tiles .local-zsk-tiles-category-grid,
+    #frontpage-course-tiles .local-zsk-tiles-category-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.local-zsk-tiles-category-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid #d9dee3;
+    border-radius: 12px;
+    background: #fff;
+    color: inherit;
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.local-zsk-tiles-category-card:hover,
+.local-zsk-tiles-category-card:focus {
+    color: inherit;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.local-zsk-tiles-category-image {
+    width: 100%;
+    height: var(--local-zsk-tiles-image-height);
+    object-fit: cover;
+    display: block;
+    flex-shrink: 0;
+}
+
+.local-zsk-tiles-category-card-body {
+    padding: 1rem 1rem 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.local-zsk-tiles-category-card-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+    color: #0b4f8a;
+    font-weight: 700;
+}
+
+.local-zsk-tiles-category-card-text {
+    margin: 0;
+    color: #505b66;
+    font-size: 1rem;
+    line-height: var(--local-zsk-tiles-desc-line-height);
+    display: -webkit-box;
+    -webkit-line-clamp: var(--local-zsk-tiles-desc-lines);
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-height: calc(1em * var(--local-zsk-tiles-desc-line-height) * var(--local-zsk-tiles-desc-lines));
+}
+
+.local-zsk-tiles-category-card.local-zsk-tiles-no-image .local-zsk-tiles-category-card-body {
+    min-height: 120px;
+}
+
+.local-zsk-tiles-category-card-footer {
+    margin: 0.75rem -1rem 0;
+    margin-top: auto;
+    padding: 0.65rem 1rem;
+    border-top: 1px solid #e3e7ea;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.35;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Completion colours */
+.local-zsk-tiles-completion-complete {
+    background-color: #dff5e3;
+    border-top-color: #b9e3c3;
+    color: #1f5c2e;
+}
+
+.local-zsk-tiles-completion-progress {
+    background-color: #fff3b0;
+    border-top-color: #f0e08a;
+    color: #5c4b00;
+}
+
+.local-zsk-tiles-completion-notstarted {
+    background-color: #c62828;
+    border-top-color: #a61f1f;
+    color: #ffe566;
+}
+
+.local-zsk-tiles-completion-disabled {
+    background-color: #eceff3;
+    border-top-color: #dde2e8;
+    color: #4a5560;
+}
+
+.local-zsk-tiles-category-count {
+    background-color: #f1f3f5;
+    border-top-color: #e1e5ea;
+    color: #3f4b56;
+}
+
+.local-zsk-tiles-completion-notenrolled {
+    background-color: #e8ecf1;
+    border-top-color: #d5dbe3;
+    color: #3a4652;
+}
+
+body.local-zsk-tiles-tiles-active #region-main .courses,
+body.local-zsk-tiles-tiles-active #region-main .course-list,
+body.local-zsk-tiles-tiles-active #region-main .courses-view,
+body.local-zsk-tiles-tiles-active #region-main [data-region="courses-view"],
+body.local-zsk-tiles-tiles-active #region-main .coursebox {
+    display: none !important;
+}
+
+body.local-zsk-tiles-tiles-active #region-main .course_category_tree,
+body.local-zsk-tiles-tiles-active #region-main [data-region="category-description"],
+body.local-zsk-tiles-tiles-active #region-main .categorydescription,
+body.local-zsk-tiles-tiles-active #region-main .generalbox.info {
+    display: none !important;
+}
+
+body.local-zsk-tiles-tiles-active #region-main img[src*="coursecat/description"] {
+    display: none !important;
+}
+
+body.local-zsk-tiles-tiles-active #local-zsk-tiles-category-tiles img[src*="coursecat/description"] {
+    display: block !important;
+}
+
+body.local-zsk-tiles-tiles-active.path-my-courses #region-main [data-region="courses-view"],
+body.local-zsk-tiles-tiles-active.path-my-courses #region-main .courses-view,
+body.local-zsk-tiles-tiles-active.path-site #region-main [data-region="courses-view"],
+body.local-zsk-tiles-tiles-active.path-site #region-main .courses-view,
+body.local-zsk-tiles-tiles-active.pagelayout-frontpage #region-main [data-region="courses-view"] {
+    display: none !important;
+}
+
+body.local-zsk-tiles-tiles-active.path-course-search #region-main .course-search-result {
+    display: none !important;
+}
+
+/* Site home: hide front-page course sections when centre tiles are active. */
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main .course-content,
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main [data-region="section-topics"],
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main [data-region="section-list"],
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main .course-section,
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main .activity-add,
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main .section-modchooser,
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main > .buttons,
+body.local-zsk-tiles-frontpage-mode.path-site.pagelayout-frontpage #region-main > .singlebutton {
+    display: none !important;
+}
+
+.local-zsk-tiles-branding {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: right;
+}
