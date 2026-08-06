@@ -55,7 +55,7 @@ Die Quelle steuert die Einstellung **`tiles_content_source`**:
 
 ### Kurs-Kachel (`custom`)
 
-- Text: Tabelle `local_zsk_tiles_course` (sonst Fallback auf Summary)
+- Text: Tabelle `local_zsk_local_tiles_course` (sonst Fallback auf Summary)
 - Bild: Filearea `local_zsk_local_tiles/coursetile` im Kurskontext (sonst Fallback)
 - Pflege: `/local/zsk_local_tiles/manage_courses.php` (Allowlist)
 
@@ -70,7 +70,7 @@ Die Quelle steuert die Einstellung **`tiles_content_source`**:
 
 ### Kursbereich-Kachel (`custom`)
 
-- Text: Tabelle `local_zsk_tiles_category` (sonst Fallback)
+- Text: Tabelle `local_zsk_local_tiles_category` (sonst Fallback)
 - Bild: Filearea `local_zsk_local_tiles/cattile` (sonst Fallback)
 - Pflege: `/local/zsk_local_tiles/manage_categories.php` (Allowlist)
 

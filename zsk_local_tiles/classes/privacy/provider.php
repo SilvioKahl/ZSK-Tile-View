@@ -32,18 +32,18 @@ class provider implements
      * @return collection
      */
     public static function get_metadata(collection $collection): collection {
-        $collection->add_database_table('local_zsk_tiles_allow', [
+        $collection->add_database_table('local_zsk_local_tiles_allow', [
             'userid' => 'privacy:metadata:allow:userid',
             'timecreated' => 'privacy:metadata:allow:timecreated',
             'usermodified' => 'privacy:metadata:allow:usermodified',
         ], 'privacy:metadata:allow');
 
-        $collection->add_database_table('local_zsk_tiles_course', [
+        $collection->add_database_table('local_zsk_local_tiles_course', [
             'usermodified' => 'privacy:metadata:content:usermodified',
             'timemodified' => 'privacy:metadata:content:timemodified',
         ], 'privacy:metadata:coursecontent');
 
-        $collection->add_database_table('local_zsk_tiles_category', [
+        $collection->add_database_table('local_zsk_local_tiles_category', [
             'usermodified' => 'privacy:metadata:content:usermodified',
             'timemodified' => 'privacy:metadata:content:timemodified',
         ], 'privacy:metadata:categorycontent');
@@ -58,9 +58,9 @@ class provider implements
     public static function get_contexts_for_userid(int $userid): contextlist {
         $contextlist = new contextlist();
         global $DB;
-        if ($DB->record_exists('local_zsk_tiles_allow', ['userid' => $userid])
-                || $DB->record_exists('local_zsk_tiles_course', ['usermodified' => $userid])
-                || $DB->record_exists('local_zsk_tiles_category', ['usermodified' => $userid])) {
+        if ($DB->record_exists('local_zsk_local_tiles_allow', ['userid' => $userid])
+                || $DB->record_exists('local_zsk_local_tiles_course', ['usermodified' => $userid])
+                || $DB->record_exists('local_zsk_local_tiles_category', ['usermodified' => $userid])) {
             $contextlist->add_system_context();
         }
         return $contextlist;
@@ -74,9 +74,9 @@ class provider implements
         if (!$context instanceof \context_system) {
             return;
         }
-        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_zsk_tiles_allow}', []);
-        $userlist->add_from_sql('usermodified', 'SELECT usermodified FROM {local_zsk_tiles_course}', []);
-        $userlist->add_from_sql('usermodified', 'SELECT usermodified FROM {local_zsk_tiles_category}', []);
+        $userlist->add_from_sql('userid', 'SELECT userid FROM {local_zsk_local_tiles_allow}', []);
+        $userlist->add_from_sql('usermodified', 'SELECT usermodified FROM {local_zsk_local_tiles_course}', []);
+        $userlist->add_from_sql('usermodified', 'SELECT usermodified FROM {local_zsk_local_tiles_category}', []);
     }
 
     /**
@@ -92,7 +92,7 @@ class provider implements
             if ($context->contextlevel !== CONTEXT_SYSTEM) {
                 continue;
             }
-            if ($DB->record_exists('local_zsk_tiles_allow', ['userid' => $userid])) {
+            if ($DB->record_exists('local_zsk_local_tiles_allow', ['userid' => $userid])) {
                 writer::with_context($context)->export_data(
                     [get_string('privacy:path:allow', 'local_zsk_local_tiles')],
                     (object) ['userid' => $userid]
@@ -109,7 +109,7 @@ class provider implements
         if ($context->contextlevel !== CONTEXT_SYSTEM) {
             return;
         }
-        $DB->delete_records('local_zsk_tiles_allow');
+        $DB->delete_records('local_zsk_local_tiles_allow');
     }
 
     /**
@@ -120,7 +120,7 @@ class provider implements
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
             if ($context->contextlevel === CONTEXT_SYSTEM) {
-                $DB->delete_records('local_zsk_tiles_allow', ['userid' => $userid]);
+                $DB->delete_records('local_zsk_local_tiles_allow', ['userid' => $userid]);
             }
         }
     }
@@ -139,6 +139,6 @@ class provider implements
             return;
         }
         list($insql, $params) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
-        $DB->delete_records_select('local_zsk_tiles_allow', "userid $insql", $params);
+        $DB->delete_records_select('local_zsk_local_tiles_allow', "userid $insql", $params);
     }
 }

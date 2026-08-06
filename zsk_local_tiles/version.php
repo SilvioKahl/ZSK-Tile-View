@@ -25,7 +25,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 
 $plugin->component = 'local_zsk_local_tiles';
-$plugin->version   = 2025080406;
+$plugin->version   = 2025080407;
 $plugin->requires  = 2022112800; // Moodle 4.1.
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '1.1.6';
+$plugin->release   = '1.1.7';

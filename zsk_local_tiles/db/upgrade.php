@@ -246,5 +246,23 @@ function xmldb_local_zsk_local_tiles_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025080406, 'local', 'zsk_local_tiles');
     }
 
+    if ($oldversion < 2025080407) {
+        // Frankenstyle: rename tables to local_zsk_local_tiles_* prefix (Moodle.org validate).
+        $dbman = $DB->get_manager();
+        $renames = [
+            'local_zsk_tiles_allow' => 'local_zsk_local_tiles_allow',
+            'local_zsk_tiles_course' => 'local_zsk_local_tiles_course',
+            'local_zsk_tiles_category' => 'local_zsk_local_tiles_category',
+        ];
+        foreach ($renames as $oldname => $newname) {
+            $oldtable = new xmldb_table($oldname);
+            $newtable = new xmldb_table($newname);
+            if ($dbman->table_exists($oldtable) && !$dbman->table_exists($newtable)) {
+                $dbman->rename_table($oldtable, $newname);
+            }
+        }
+        upgrade_plugin_savepoint(true, 2025080407, 'local', 'zsk_local_tiles');
+    }
+
     return true;
 }

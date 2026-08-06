@@ -17,8 +17,8 @@ defined('MOODLE_INTERNAL') || die();
  */
 class content_store {
 
-    public const TABLE_COURSE = 'local_zsk_tiles_course';
-    public const TABLE_CATEGORY = 'local_zsk_tiles_category';
+    public const TABLE_COURSE = 'local_zsk_local_tiles_course';
+    public const TABLE_CATEGORY = 'local_zsk_local_tiles_category';
     public const FILEAREA_COURSE = 'coursetile';
     public const FILEAREA_CATEGORY = 'cattile';
     public const SOURCE_COURSE = 'course';

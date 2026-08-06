@@ -56,7 +56,7 @@ function local_zsk_local_tiles_user_can_manage_content(?int $userid = null): boo
         return false;
     }
 
-    return $DB->record_exists('local_zsk_tiles_allow', ['userid' => $userid]);
+    return $DB->record_exists('local_zsk_local_tiles_allow', ['userid' => $userid]);
 }
 
 /**
@@ -73,7 +73,7 @@ function local_zsk_local_tiles_require_manage_content(): void {
  */
 function local_zsk_local_tiles_get_allowed_userids(): array {
     global $DB;
-    return array_map('intval', $DB->get_fieldset_select('local_zsk_tiles_allow', 'userid', '1=1'));
+    return array_map('intval', $DB->get_fieldset_select('local_zsk_local_tiles_allow', 'userid', '1=1'));
 }
 
 /**
@@ -106,13 +106,13 @@ function local_zsk_local_tiles_set_allowed_userids(array $userids): void {
     $now = time();
 
     foreach (array_diff($existing, $userids) as $removeid) {
-        $DB->delete_records('local_zsk_tiles_allow', ['userid' => $removeid]);
+        $DB->delete_records('local_zsk_local_tiles_allow', ['userid' => $removeid]);
     }
     foreach (array_diff($userids, $existing) as $addid) {
         if ($addid <= 0) {
             continue;
         }
-        $DB->insert_record('local_zsk_tiles_allow', (object) [
+        $DB->insert_record('local_zsk_local_tiles_allow', (object) [
             'userid' => $addid,
             'timecreated' => $now,
             'usermodified' => (int) $USER->id,
