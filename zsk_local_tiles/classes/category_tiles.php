@@ -276,10 +276,8 @@ class category_tiles {
                     $context
                 );
             }
-            $customimage = \local_zsk_local_tiles\local\content_store::get_course_image_url((int) $course->id);
-            if ($customimage !== '') {
-                $image = $customimage;
-            }
+            // In separate-upload mode, do not fall back to course overview images.
+            $image = \local_zsk_local_tiles\local\content_store::get_course_image_url((int) $course->id);
         }
 
         $summary = \local_zsk_local_tiles\local\content_store::truncate_summary($summary);
@@ -478,14 +476,22 @@ class category_tiles {
     }
 
     /**
-     * Whether the user may see a course category in listings.
+     * Whether a subcategory may appear as a tile under its parent.
+     *
+     * Hidden categories (visible = 0) are never shown as tiles – even for
+     * managers who can see them elsewhere via viewhiddencategories.
      *
      * @param \stdClass $category
      * @return bool
      */
     protected static function can_user_view_category(\stdClass $category): bool {
+        // Respect Moodle's "Hide" flag for tile listings.
+        if (empty($category->visible)) {
+            return false;
+        }
+
         if (!class_exists('\core_course_category')) {
-            return !empty($category->visible);
+            return true;
         }
 
         try {
@@ -538,10 +544,8 @@ class category_tiles {
                     $context
                 );
             }
-            $customimage = \local_zsk_local_tiles\local\content_store::get_category_image_url((int) $category->id);
-            if ($customimage !== '') {
-                $image = $customimage;
-            }
+            // In separate-upload mode, do not fall back to description images.
+            $image = \local_zsk_local_tiles\local\content_store::get_category_image_url((int) $category->id);
         }
 
         $text = \local_zsk_local_tiles\local\content_store::truncate_summary($text);
@@ -557,7 +561,7 @@ class category_tiles {
             'title' => format_string($category->name),
             'text' => $text,
             'categorycounttext' => $countlabel,
-            'image' => self::normalize_image_url($image),
+            'image' => self::apply_course_image_with_placeholder($image),
             'url' => (new \moodle_url('/course/index.php', ['categoryid' => (int) $category->id]))->out(false),
         ];
     }
@@ -648,6 +652,8 @@ class category_tiles {
         $url = str_replace('/overviewfiles/0/', '/overviewfiles/', $url);
         $url = str_replace('/coursecat/description/0/', '/coursecat/description/', $url);
         $url = str_replace('/tileplaceholder/0/', '/tileplaceholder/', $url);
+        $url = str_replace('/coursetile/0/', '/coursetile/', $url);
+        $url = str_replace('/cattile/0/', '/cattile/', $url);
 
         return $url;
     }

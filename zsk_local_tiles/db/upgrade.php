@@ -264,5 +264,23 @@ function xmldb_local_zsk_local_tiles_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025080407, 'local', 'zsk_local_tiles');
     }
 
+    if ($oldversion < 2025080408) {
+        // Break upgradesettings redirect loop (placeholder file + full config seed).
+        require_once(__DIR__ . '/../lib.php');
+        local_zsk_local_tiles_seed_config_defaults();
+        upgrade_plugin_savepoint(true, 2025080408, 'local', 'zsk_local_tiles');
+    }
+
+    if ($oldversion < 2025080409) {
+        // Hide invisible categories as tiles; custom tile images for guests; no course-settings fallback in custom mode.
+        upgrade_plugin_savepoint(true, 2025080409, 'local', 'zsk_local_tiles');
+    }
+
+    if ($oldversion < 2025080410) {
+        // 100-day full trial; remove obsolete legacy admin page.
+        \local_zsk_local_tiles\util\license::ensure_trial_started();
+        upgrade_plugin_savepoint(true, 2025080410, 'local', 'zsk_local_tiles');
+    }
+
     return true;
 }

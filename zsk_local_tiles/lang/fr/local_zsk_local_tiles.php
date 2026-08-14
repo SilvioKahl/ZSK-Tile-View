@@ -22,7 +22,7 @@ $string['tile_coursecount'] = '{$a} course|{$a} courses';
 $string['tile_completion_percent'] = 'Course {$a}% complete.';
 $string['tile_completion_disabled'] = 'No completion tracking for this course';
 $string['tile_not_enrolled'] = 'not enrolled yet';
-$string['tilesettings_heading'] = 'Tile view';
+$string['tilesettings_heading'] = 'Tile view settings';
 $string['tilesettings_intro'] = 'Category pages and My courses: automatic tiles. Site home: item in front page settings. Dashboard: block in the centre (content region).';
 $string['tilesettings_block_heading'] = 'Site home & Dashboard';
 $string['tilesettings_block_desc'] = 'Site home: choose “Course tiles” under Site administration → Front page → “Front page items when logged in”. Dashboard: “Course tiles” block in the centre (created automatically when enabled, if missing).';
@@ -83,6 +83,7 @@ $string['license_heading_desc'] = 'License key for Premium features. Without a v
 $string['license_key'] = 'Premium license key';
 $string['license_key_desc'] = 'ZSK Course tiles key only (prefix ZSK-KA-). Create on the license server with: php cli/create_license.php --plugin=local_zsk_local_tiles. To remove or replace: choose “Unmask”, edit the field and save.';
 $string['license_status'] = 'License status';
+$string['license_status_trial'] = 'Trial active – {$a} days of full access remaining';
 $string['license_status_free'] = 'Free tier (Dashboard + My courses, standard layout)';
 $string['license_status_premium'] = 'Premium (all features active)';
 $string['license_status_premium_slots'] = 'Premium ({$a->used}/{$a->max} sites bound)';

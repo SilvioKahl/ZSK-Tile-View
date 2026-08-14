@@ -19,17 +19,65 @@ namespace local_zsk_local_tiles\util;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * License verification and freemium feature gates for ZSK Kachelansicht.
+ * License verification, trial and freemium feature gates for ZSK Kachelansicht.
+ *
+ * All features are available during a 100-day trial. Afterwards a license key
+ * unlocks Premium; without a key only Dashboard + My courses remain free.
  */
 class license {
 
     public const TIER_PREMIUM = 'premium';
 
-    /** @var string[] Free tier: dashboard + my courses only. */
+    /** @var int Full-access trial length in days. */
+    public const TRIAL_DAYS = 100;
+
+    /** @var string[] Free tier after trial without license. */
     public const FREE_CONTEXTS = ['dashboard', 'mycourses'];
 
     private const CONFIG_PREFIX = 'local_zsk_local_tiles';
     private const DEFAULT_GRACE_DAYS = 7;
+
+    /**
+     * Ensure trial_started is set once (install/upgrade/first use).
+     *
+     * @return int Unix timestamp
+     */
+    public static function ensure_trial_started(): int {
+        $started = get_config(self::CONFIG_PREFIX, 'trial_started');
+        if ($started !== false && (int) $started > 0) {
+            return (int) $started;
+        }
+        $now = time();
+        set_config('trial_started', $now, self::CONFIG_PREFIX);
+        return $now;
+    }
+
+    /**
+     * @return int
+     */
+    public static function trial_ends_at(): int {
+        return self::ensure_trial_started() + (self::TRIAL_DAYS * DAYSECS);
+    }
+
+    /**
+     * @return bool
+     */
+    public static function is_in_trial(): bool {
+        return time() < self::trial_ends_at();
+    }
+
+    /**
+     * Days remaining in trial (0 if expired).
+     *
+     * @return int
+     */
+    public static function trial_days_remaining(): int {
+        $remaining = self::trial_ends_at() - time();
+        if ($remaining <= 0) {
+            return 0;
+        }
+        return (int) ceil($remaining / DAYSECS);
+    }
 
     /**
      * @return string
@@ -39,9 +87,23 @@ class license {
     }
 
     /**
+     * Full Premium access: active trial or valid license.
+     *
      * @return bool
      */
     public static function is_premium(): bool {
+        if (self::is_in_trial()) {
+            return true;
+        }
+        return self::has_active_license_tier([self::TIER_PREMIUM, 'enterprise']);
+    }
+
+    /**
+     * Whether a paid license is active (ignores trial).
+     *
+     * @return bool
+     */
+    public static function is_licensed(): bool {
         return self::has_active_license_tier([self::TIER_PREMIUM, 'enterprise']);
     }
 
@@ -403,23 +465,24 @@ class license {
      * @return string
      */
     public static function get_status_string(): string {
+        if (self::is_licensed()) {
+            $payload = self::decode_token(get_config(self::CONFIG_PREFIX, 'license_token'));
+            $now = time();
+            if ($payload && !empty($payload['valid']) && !empty($payload['expires']) && (int) $payload['expires'] > $now) {
+                return self::format_premium_status(
+                    (int) ($payload['sites_used'] ?? 0),
+                    (int) ($payload['sites_max'] ?? 0)
+                );
+            }
+            return get_string('license_status_grace', 'local_zsk_local_tiles', self::get_grace_days());
+        }
+
+        if (self::is_in_trial()) {
+            return get_string('license_status_trial', 'local_zsk_local_tiles', self::trial_days_remaining());
+        }
+
         if (self::get_effective_license_key() === '') {
             return get_string('license_status_free', 'local_zsk_local_tiles');
-        }
-
-        $payload = self::decode_token(get_config(self::CONFIG_PREFIX, 'license_token'));
-        $now = time();
-
-        if ($payload && !empty($payload['valid']) && !empty($payload['expires']) && (int) $payload['expires'] > $now) {
-            return self::format_premium_status(
-                (int) ($payload['sites_used'] ?? 0),
-                (int) ($payload['sites_max'] ?? 0)
-            );
-        }
-
-        $graceuntil = (int) get_config(self::CONFIG_PREFIX, 'license_grace_until');
-        if ($graceuntil > $now) {
-            return get_string('license_status_grace', 'local_zsk_local_tiles', self::get_grace_days());
         }
 
         $lasterror = (string) get_config(self::CONFIG_PREFIX, 'license_last_error');

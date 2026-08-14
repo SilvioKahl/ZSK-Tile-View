@@ -1155,12 +1155,23 @@ function local_zsk_local_tiles_pluginfile(
         if ($context->contextlevel != CONTEXT_COURSE) {
             return false;
         }
-        require_login();
+        // Guests may see frontpage/dashboard tiles when the course allows it.
+        require_course_login($course, true);
     } else if ($filearea === 'cattile') {
         if ($context->contextlevel != CONTEXT_COURSECAT) {
             return false;
         }
-        require_login();
+        // Visible category tiles (e.g. frontpage) must work for guests – do not force login.
+        $category = \core_course_category::get((int) $context->instanceid, IGNORE_MISSING);
+        if (!$category) {
+            return false;
+        }
+        if (!$category->is_uservisible()) {
+            require_login();
+            if (!$category->is_uservisible()) {
+                return false;
+            }
+        }
     } else if ($filearea === 'tileplaceholder') {
         if ($context->contextlevel != CONTEXT_SYSTEM) {
             return false;
@@ -1213,12 +1224,13 @@ function local_zsk_local_tiles_seed_config_defaults(): int {
         'tiles_dashboard' => '1',
         'tiles_mycourses' => '1',
         'tiles_frontpage' => '0',
-        'tiles_category' => '1',
+        'tiles_category' => '0',
         'tiles_showunenrolled' => '0',
-        'tiles_category_maxdepth' => '2',
+        'tiles_category_maxdepth' => '0',
         'tiles_grid_columns' => '2',
         'tiles_image_height' => '175',
         'tiles_desc_lines' => '7',
+        'tiles_placeholderimage' => '0',
         'footer_color_complete_bg' => '',
         'footer_color_complete_fg' => '',
         'footer_color_progress_bg' => '',
@@ -1241,6 +1253,8 @@ function local_zsk_local_tiles_seed_config_defaults(): int {
             $written++;
         }
     }
+
+    \local_zsk_local_tiles\util\license::ensure_trial_started();
 
     return $written;
 }

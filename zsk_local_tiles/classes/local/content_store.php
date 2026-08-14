@@ -195,9 +195,10 @@ class content_store {
      * @param string $filearea
      * @return string
      */
-    protected static function first_image_url(int $contextid, string $filearea): string {
+    public static function first_image_url(int $contextid, string $filearea): string {
         $fs = get_file_storage();
-        $files = $fs->get_area_files($contextid, 'local_zsk_local_tiles', $filearea, 0, 'itemid, filepath, filename', false);
+        // Do not restrict by itemid – some saves may use a non-zero itemid.
+        $files = $fs->get_area_files($contextid, 'local_zsk_local_tiles', $filearea, false, 'itemid, filepath, filename', false);
         foreach ($files as $file) {
             if ($file->is_valid_image()) {
                 $url = \moodle_url::make_pluginfile_url(

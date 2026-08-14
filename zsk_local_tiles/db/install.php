@@ -24,6 +24,7 @@ function xmldb_local_zsk_local_tiles_install() {
 
     require_once($CFG->dirroot . '/local/zsk_local_tiles/lib.php');
     local_zsk_local_tiles_seed_config_defaults();
+    \local_zsk_local_tiles\util\license::ensure_trial_started();
 
     return true;
 }

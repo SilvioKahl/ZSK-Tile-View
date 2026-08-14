@@ -25,7 +25,9 @@ define([], function() {
         return url
             .replace(/\/overviewfiles\/0\//g, '/overviewfiles/')
             .replace(/\/coursecat\/description\/0\//g, '/coursecat/description/')
-            .replace(/\/tileplaceholder\/0\//g, '/tileplaceholder/');
+            .replace(/\/tileplaceholder\/0\//g, '/tileplaceholder/')
+            .replace(/\/coursetile\/0\//g, '/coursetile/')
+            .replace(/\/cattile\/0\//g, '/cattile/');
     };
 
     /**

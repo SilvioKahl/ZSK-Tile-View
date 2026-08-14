@@ -23,9 +23,16 @@ use local_zsk_local_tiles\admin\setting_license_key;
 use local_zsk_local_tiles\util\license;
 
 if ($hassiteconfig) {
+    // Always seed missing defaults first – prevents ERR_TOO_MANY_REDIRECTS on upgradesettings.
+    local_zsk_local_tiles_seed_config_defaults();
+
     admin_nav::ensure_category($ADMIN);
 
-    license::refresh_status_if_key_present();
+    $onupgradesettings = isset($_SERVER['SCRIPT_NAME'])
+        && str_ends_with((string) $_SERVER['SCRIPT_NAME'], 'upgradesettings.php');
+    if (!$onupgradesettings) {
+        license::refresh_status_if_key_present();
+    }
 
     $licensepage = new admin_settingpage(
         'local_zsk_local_tiles_license',
@@ -155,7 +162,7 @@ if ($hassiteconfig) {
         0
     ));
 
-    $tilesettings->add(new admin_setting_configstoredfile(
+    $tilesettings->add(new \local_zsk_local_tiles\admin\setting_placeholder_file(
         'local_zsk_local_tiles/tiles_placeholderimage',
         get_string('tiles_placeholderimage', 'local_zsk_local_tiles'),
         get_string('tiles_placeholderimage_desc', 'local_zsk_local_tiles') . ' ' .
@@ -237,28 +244,6 @@ if ($hassiteconfig) {
         new moodle_url('/local/zsk_local_tiles/manageaccess.php'),
         'moodle/site:config'
     ));
-
-    if (!$ADMIN->locate('local_zsk_local_tiles', false)) {
-        $legacy = new admin_settingpage(
-            'local_zsk_local_tiles',
-            get_string('pluginname', 'local_zsk_local_tiles')
-        );
-        $legacy->add(new admin_setting_description(
-            'local_zsk_local_tiles/legacy_redirect',
-            get_string('settings_moved_title', 'local_zsk_local_tiles'),
-            get_string('settings_moved_tiles', 'local_zsk_local_tiles', (object) [
-                'license' => html_writer::link(
-                    new moodle_url('/admin/settings.php', ['section' => 'local_zsk_local_tiles_license']),
-                    get_string('license_settings_title', 'local_zsk_local_tiles')
-                ),
-                'design' => html_writer::link(
-                    new moodle_url('/admin/settings.php', ['section' => 'local_zsk_local_tiles_config']),
-                    get_string('tilesettings_heading', 'local_zsk_local_tiles')
-                ),
-            ])
-        ));
-        admin_nav::add_page($ADMIN, $legacy);
-    }
 
     require_once(__DIR__ . '/classes/admin/frontpage_settings.php');
     \local_zsk_local_tiles\admin\frontpage_settings::patch_admin_tree();
