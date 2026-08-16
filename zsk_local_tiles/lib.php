@@ -572,9 +572,11 @@ function local_zsk_local_tiles_get_stylesheet_url(): string {
 }
 
 /**
- * Register tile stylesheet in <head> or return a late <link> fallback.
+ * Register tile stylesheet in <head> or return a late <link>+<style> fallback.
  *
- * @return string Optional <link> tag when <head> was already printed.
+ * Custom layout CSS must load AFTER styles.css so admin overrides win.
+ *
+ * @return string Optional markup when <head> was already printed.
  */
 function local_zsk_local_tiles_require_styles(): string {
     global $PAGE;
@@ -583,18 +585,17 @@ function local_zsk_local_tiles_require_styles(): string {
     if ($handled || empty($PAGE)) {
         return '';
     }
+    $handled = true;
 
     $customcss = local_zsk_local_tiles_get_custom_css();
 
+    // Prefer late injection (body/footer): styles.css from theme head would otherwise
+    // reset :root defaults after an early <style> and ignore admin settings.
     if (!$PAGE->requires->is_head_done()) {
-        $handled = true;
-        if ($customcss !== '') {
-            return html_writer::tag('style', $customcss, ['data-local-zsk-tiles-custom' => '1']);
-        }
+        // Head still open – queue nothing here; footer hook / tile render injects late.
+        $handled = false;
         return '';
     }
-
-    $handled = true;
 
     $html = html_writer::empty_tag('link', [
         'rel' => 'stylesheet',
@@ -607,6 +608,24 @@ function local_zsk_local_tiles_require_styles(): string {
     }
 
     return $html;
+}
+
+/**
+ * HTML for admin layout/colour CSS (safe to inject late in footer).
+ *
+ * @return string
+ */
+function local_zsk_local_tiles_custom_css_html(): string {
+    static $done = false;
+    if ($done) {
+        return '';
+    }
+    $css = local_zsk_local_tiles_get_custom_css();
+    if ($css === '') {
+        return '';
+    }
+    $done = true;
+    return html_writer::tag('style', $css, ['data-local-zsk-tiles-custom' => '1']);
 }
 
 /**
@@ -636,21 +655,12 @@ function local_zsk_local_tiles_get_custom_css(): string {
             $desclines = 7;
         }
 
+        // Integer without unit – used by CSS repeat(var(--local-zsk-tiles-grid-columns)).
         $css .= ':root {'
             . '--local-zsk-tiles-image-height: ' . $height . 'px;'
             . '--local-zsk-tiles-desc-lines: ' . $desclines . ';'
             . '--local-zsk-tiles-grid-columns: ' . $columns . ';'
             . '}' . "\n";
-
-        if ($columns !== 2) {
-            $css .= '@media (min-width: 520px) {'
-                . '.local-zsk-tiles-category-tiles > .local-zsk-tiles-category-grid,'
-                . '.block_coursetiles .local-zsk-tiles-category-grid,'
-                . '#local-zsk-tiles-category-tiles .local-zsk-tiles-category-grid,'
-                . '#frontpage-course-tiles .local-zsk-tiles-category-grid {'
-                . 'grid-template-columns: repeat(' . $columns . ', minmax(0, 1fr));'
-                . '}' . "}\n";
-        }
     }
 
     if (\local_zsk_local_tiles\util\license::can_use_custom_colors()) {
@@ -1057,8 +1067,13 @@ function local_zsk_local_tiles_inject_tiles(array $items, string $mode = 'catego
     }
 
     $cssurl = local_zsk_local_tiles_get_stylesheet_url();
+    $customcss = local_zsk_local_tiles_get_custom_css();
 
-    $PAGE->requires->js_call_amd('local_zsk_local_tiles/tile_inject', 'init', [$items, $mode, $cssurl]);
+    $PAGE->requires->js_call_amd(
+        'local_zsk_local_tiles/tile_inject',
+        'init',
+        [$items, $mode, $cssurl, $customcss]
+    );
 }
 
 /**

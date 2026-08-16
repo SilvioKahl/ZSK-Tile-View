@@ -33,13 +33,10 @@ class hook_callbacks {
     public static function register_page_styles(
         \core\hook\output\before_standard_head_html_generation $hook
     ): void {
+        // Stylesheet via get_stylesheets_for_context; custom CSS is injected late in footer
+        // so it wins over styles.css :root defaults.
         if (!local_zsk_local_tiles_page_needs_tile_styles()) {
             return;
-        }
-
-        $late = local_zsk_local_tiles_require_styles();
-        if ($late !== '') {
-            $hook->add_html($late);
         }
     }
 
@@ -58,6 +55,10 @@ class hook_callbacks {
     public static function inject_category_tiles_footer(
         \core\hook\output\before_footer_html_generation $hook
     ): void {
+        // Admin layout overrides after styles.css (all tile pages).
+        if (local_zsk_local_tiles_page_needs_tile_styles()) {
+            $hook->add_html(local_zsk_local_tiles_custom_css_html());
+        }
         self::inject_frontpage_coursetiles($hook);
         \local_zsk_local_tiles_inject_tiles_when_ready();
     }

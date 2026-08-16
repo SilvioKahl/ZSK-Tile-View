@@ -163,31 +163,37 @@ define([], function() {
     };
 
     /**
-     * Ensure stylesheet is present when injection runs after head.
+     * Ensure stylesheet (+ optional admin overrides) is present when injection runs after head.
      *
      * @param {string} cssurl
+     * @param {string} customcss
      */
-    const ensureStylesheet = (cssurl) => {
-        if (!cssurl) {
-            return;
+    const ensureStylesheet = (cssurl, customcss) => {
+        if (cssurl) {
+            if (!document.querySelector('link[data-local-zsk-tiles-tiles="1"]')
+                && !document.querySelector('link[href*="/local/zsk_local_tiles/styles.css"]')) {
+                const csslink = document.createElement('link');
+                csslink.rel = 'stylesheet';
+                csslink.href = cssurl;
+                csslink.setAttribute('data-local-zsk-tiles-tiles', '1');
+                document.head.appendChild(csslink);
+            }
         }
-        if (document.querySelector('link[data-local-zsk-tiles-tiles="1"]')
-            || document.querySelector('link[href*="/local/zsk_local_tiles/styles.css"]')) {
-            return;
+        if (customcss && !document.querySelector('style[data-local-zsk-tiles-custom="1"]')) {
+            const style = document.createElement('style');
+            style.setAttribute('data-local-zsk-tiles-custom', '1');
+            style.appendChild(document.createTextNode(customcss));
+            document.head.appendChild(style);
         }
-        const csslink = document.createElement('link');
-        csslink.rel = 'stylesheet';
-        csslink.href = cssurl;
-        csslink.setAttribute('data-local-zsk-tiles-tiles', '1');
-        document.head.appendChild(csslink);
     };
 
     /**
      * @param {Object[]} items
      * @param {string} mode
      * @param {string} cssurl
+     * @param {string} customcss
      */
-    const renderTiles = (items, mode, cssurl) => {
+    const renderTiles = (items, mode, cssurl, customcss) => {
         if (!Array.isArray(items) || !items.length) {
             return;
         }
@@ -199,6 +205,8 @@ define([], function() {
         if (!main) {
             return;
         }
+
+        ensureStylesheet(cssurl, customcss);
 
         const wrapper = document.createElement('div');
         wrapper.id = 'local-zsk-tiles-category-tiles';
@@ -267,10 +275,11 @@ define([], function() {
      * @param {Object[]} items
      * @param {string} mode
      * @param {string} cssurl
+     * @param {string} customcss
      */
-    const init = (items, mode, cssurl) => {
-        ensureStylesheet(cssurl);
-        const run = () => renderTiles(items, mode || 'category', cssurl);
+    const init = (items, mode, cssurl, customcss) => {
+        ensureStylesheet(cssurl, customcss || '');
+        const run = () => renderTiles(items, mode || 'category', cssurl, customcss || '');
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', run);
         } else {

@@ -282,5 +282,10 @@ function xmldb_local_zsk_local_tiles_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025080410, 'local', 'zsk_local_tiles');
     }
 
+    if ($oldversion < 2025080411) {
+        // Apply layout settings on all tile pages (custom CSS after styles.css).
+        upgrade_plugin_savepoint(true, 2025080411, 'local', 'zsk_local_tiles');
+    }
+
     return true;
 }
